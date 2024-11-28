@@ -1,0 +1,36 @@
+#### Основная функция
+import requests
+
+def get_tallest_hero_by_criteria(gender, has_work):
+    """
+    Получает самого высокого героя по указанным критериям.
+    
+    :param gender: Пол героя ('Male', 'Female', и т.д.)
+    :param has_work: Наличие работы (True/False)
+    :return: Словарь с данными самого высокого героя или None
+    """
+    url = "https://akabab.github.io/superhero-api/api/all.json"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        heroes = response.json()
+        
+        # Фильтруем героев по полу и наличию работы
+        filtered_heroes = [
+            hero for hero in heroes
+            if hero.get("appearance", {}).get("gender") == gender and
+               bool(hero.get("work", {}).get("occupation")) == has_work
+        ]
+        
+        # Находим самого высокого
+        tallest_hero = max(
+            filtered_heroes,
+            key=lambda hero: float(hero.get("appearance", {}).get("height", [0, "0"])[1].replace(" cm", ""))
+            if hero.get("appearance", {}).get("height", [0, "0"])[1] != "null" else 0,
+            default=None
+        )
+        return tallest_hero
+    
+    except requests.RequestException as e:
+        print(f"Ошибка при запросе данных: {e}")
+        return None
