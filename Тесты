@@ -1,0 +1,70 @@
+import unittest
+from unittest.mock import patch
+
+class TestSuperheroAPI(unittest.TestCase):
+    @patch("requests.get")
+    def test_tallest_hero_with_work(self, mock_get):
+        # Мок данных API
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = [
+            {
+                "name": "Hero1",
+                "appearance": {"gender": "Male", "height": ["0", "180 cm"]},
+                "work": {"occupation": "Scientist"}
+            },
+            {
+                "name": "Hero2",
+                "appearance": {"gender": "Male", "height": ["0", "200 cm"]},
+                "work": {"occupation": ""}
+            },
+            {
+                "name": "Hero3",
+                "appearance": {"gender": "Male", "height": ["0", "190 cm"]},
+                "work": {"occupation": "Pilot"}
+            }
+        ]
+        result = get_tallest_hero_by_criteria("Male", True)
+        self.assertEqual(result["name"], "Hero3")
+
+    @patch("requests.get")
+    def test_tallest_hero_without_work(self, mock_get):
+        # Мок данных API
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = [
+            {
+                "name": "Hero1",
+                "appearance": {"gender": "Female", "height": ["0", "165 cm"]},
+                "work": {"occupation": ""}
+            },
+            {
+                "name": "Hero2",
+                "appearance": {"gender": "Female", "height": ["0", "175 cm"]},
+                "work": {"occupation": ""}
+            }
+        ]
+        result = get_tallest_hero_by_criteria("Female", False)
+        self.assertEqual(result["name"], "Hero2")
+
+    @patch("requests.get")
+    def test_no_matching_heroes(self, mock_get):
+        # Мок данных API
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = [
+            {
+                "name": "Hero1",
+                "appearance": {"gender": "Male", "height": ["0", "180 cm"]},
+                "work": {"occupation": "Scientist"}
+            }
+        ]
+        result = get_tallest_hero_by_criteria("Female", True)
+        self.assertIsNone(result)
+
+    @patch("requests.get")
+    def test_api_failure(self, mock_get):
+        # Симуляция ошибки API
+        mock_get.side_effect = requests.RequestException("API error")
+        result = get_tallest_hero_by_criteria("Male", True)
+        self.assertIsNone(result)
+
+if __name__ == "__main__":
+    unittest.main()
